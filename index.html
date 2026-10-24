@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل النواقص 💧</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+
+  body{
+    margin:0;font-family:"Segoe UI",Tahoma,"Noto Kufi Arabic",sans-serif;
+    color:#eaf7ff;background:#01060e;min-height:100vh;overflow-x:hidden;
+  }
+
+  /* خلفية مائية */
+  .bg{position:fixed;inset:0;z-index:0;overflow:hidden;
+      background:radial-gradient(circle at 20% 10%, #0c3d63, #01060e 65%);}
+  .orb{position:absolute;border-radius:50%;filter:blur(50px);opacity:.7;
+       animation:float 22s ease-in-out infinite;}
+  .orb-1{width:380px;height:380px;background:#1e9cd8;top:-100px;left:-80px}
+  .orb-2{width:320px;height:320px;background:#00d4c0;bottom:-80px;right:-60px;animation-delay:-7s}
+  .orb-3{width:300px;height:300px;background:#3a7fe8;top:35%;right:-100px;animation-delay:-13s;opacity:.55}
+  .orb-4{width:340px;height:340px;background:#0e5a8a;bottom:5%;left:-100px;animation-delay:-4s;opacity:.6}
+  @keyframes float{
+    0%,100%{transform:translate(0,0) scale(1)}
+    33%{transform:translate(50px,-40px) scale(1.15)}
+    66%{transform:translate(-40px,30px) scale(.9)}
+  }
+  #bubbles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+  .bubble{
+    position:absolute;bottom:-160px;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.75), rgba(180,235,255,.2) 55%, transparent 76%);
+    border:1px solid rgba(255,255,255,.18);animation:rise linear infinite;
+  }
+  @keyframes rise{
+    0%{transform:translateY(0);opacity:0}
+    12%{opacity:.75}
+    100%{transform:translateY(-125vh);opacity:0}
+  }
+
+  /* التخطيط */
+  .app{position:relative;z-index:2;max-width:1000px;margin:0 auto;padding:22px 14px 90px}
+
+  .head{text-align:center;margin-bottom:14px}
+  .head h1{margin:0 0 6px;font-size:clamp(22px,4.6vw,30px);font-weight:700;
+    text-shadow:0 2px 22px rgba(120,220,255,.6);}
+  .clock{font-size:12.5px;color:rgba(200,240,255,.85);font-variant-numeric:tabular-nums;
+    letter-spacing:.5px;text-shadow:0 1px 8px rgba(0,0,0,.6);}
+
+  /* التبويبات */
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;margin-bottom:12px;
+    scrollbar-width:none;}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{position:relative;overflow:hidden;flex:0 0 auto;
+    padding:10px 18px;border-radius:14px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.05);
+    color:#eaf7ff;font-family:inherit;font-size:14px;cursor:pointer;
+    transition:transform .12s, background .2s, border-color .2s, box-shadow .2s;
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);white-space:nowrap;}
+  .tab:hover{background:rgba(255,255,255,.12);border-color:rgba(160,230,255,.4)}
+  .tab:active{transform:scale(.95)}
+  .tab.active{
+    background:linear-gradient(180deg, rgba(110,220,255,.35), rgba(30,140,200,.28));
+    border-color:rgba(160,235,255,.6);
+    box-shadow:0 0 24px rgba(110,220,255,.3), inset 0 1px 0 rgba(255,255,255,.4);
+    font-weight:700;
+  }
+  .tab[data-cat="invoice"].active{
+    background:linear-gradient(180deg, rgba(255,210,120,.35), rgba(200,140,40,.28));
+    border-color:rgba(255,220,150,.55);
+    box-shadow:0 0 24px rgba(255,190,90,.35), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .tab[data-cat="saved"].active{
+    background:linear-gradient(180deg, rgba(180,140,255,.35), rgba(110,60,200,.28));
+    border-color:rgba(210,180,255,.55);
+    box-shadow:0 0 24px rgba(180,140,255,.35), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .tab.has-data::after{content:'';position:absolute;top:7px;left:9px;
+    width:6px;height:6px;border-radius:50%;
+    background:#6ee0ff;box-shadow:0 0 8px #6ee0ff;}
+
+  /* اللوحة */
+  .panel{
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:16px;
+    backdrop-filter:blur(4px) saturate(140%);
+    -webkit-backdrop-filter:blur(4px) saturate(140%);
+    box-shadow:0 20px 50px rgba(0,10,25,.35), inset 0 1px 0 rgba(255,255,255,.12);
+  }
+  .panel-head{display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:14px;padding:0 4px;gap:10px;flex-wrap:wrap;}
+  .panel-head h2{margin:0;font-size:18px;font-weight:700;
+    text-shadow:0 2px 12px rgba(0,0,0,.4);}
+  .panel-head .badge{font-size:12px;padding:4px 12px;
+    background:rgba(110,220,255,.18);
+    border:1px solid rgba(110,220,255,.35);
+    border-radius:999px;color:#a9edff;backdrop-filter:blur(4px);
+    font-variant-numeric:tabular-nums;}
+
+  /* ===== الأوراق (كل منتج ورقة) ===== */
+  .papers{display:flex;flex-direction:column;gap:12px}
+
+  .paper{
+    position:relative;
+    background:linear-gradient(150deg,#f8fbff 0%,#e6f2fb 100%);
+    color:#0a2a44;
+    border-radius:14px;
+    padding:12px 14px;
+    display:grid;
+    grid-template-columns:46px minmax(120px,1fr) 130px 130px 90px;
+    gap:10px;align-items:center;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.95),
+      0 1px 2px rgba(0,0,0,.12),
+      0 8px 24px rgba(0,20,40,.38);
+    transition:transform .2s, box-shadow .2s;
+  }
+  .paper:hover{
+    transform:translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.95),
+      0 2px 4px rgba(0,0,0,.15),
+      0 12px 32px rgba(0,20,40,.45);
+  }
+  .paper::before{
+    content:'';position:absolute;inset:0;border-radius:inherit;
+    background-image:
+      radial-gradient(circle at 15% 25%, rgba(100,180,220,.07) 0%, transparent 22%),
+      radial-gradient(circle at 85% 75%, rgba(100,180,220,.05) 0%, transparent 28%);
+    pointer-events:none;
+  }
+  .paper > *{position:relative;z-index:1}
+
+  .paper .idx{
+    width:40px;height:40px;border-radius:50%;
+    background:linear-gradient(135deg,#3d9bd4,#1e6ea0);
+    color:#fff;font-size:15px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 10px rgba(30,110,160,.45), inset 0 1px 0 rgba(255,255,255,.4);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .paper .field{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .paper .field label{display:none;font-size:11px;color:rgba(10,42,68,.65);font-weight:700;padding-right:4px}
+
+  .paper input{
+    width:100%;padding:10px 12px;border-radius:10px;
+    border:1.5px solid rgba(30,100,150,.18);
+    background:rgba(255,255,255,.7);
+    color:#0a2a44;font-size:15px;font-family:inherit;font-weight:600;
+    outline:none;transition:.2s;font-variant-numeric:tabular-nums;
+  }
+  .paper input::placeholder{color:rgba(10,42,68,.35);font-weight:400}
+  .paper input:focus{
+    border-color:#3d9bd4;background:#fff;
+    box-shadow:0 0 0 3px rgba(61,155,212,.18);
+  }
+  .paper input.name{font-size:15.5px;font-weight:700}
+
+  .paper .row-actions{display:flex;gap:6px;justify-content:flex-end}
+
+  /* أزرار الأوراق */
+  .p-btn{
+    width:34px;height:34px;padding:0;border-radius:9px;
+    border:1px solid rgba(30,110,160,.22);
+    background:rgba(30,110,160,.08);
+    color:#1e6ea0;font-size:14px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .12s, background .2s, border-color .2s;
+    font-family:inherit;
+  }
+  .p-btn:hover{background:rgba(30,110,160,.18);border-color:rgba(30,110,160,.4)}
+  .p-btn:active{transform:scale(.9)}
+  .p-btn.del{
+    background:rgba(200,50,90,.08);
+    border-color:rgba(200,50,90,.25);
+    color:#c8325a;
+  }
+  .p-btn.del:hover{background:rgba(200,50,90,.18);border-color:rgba(200,50,90,.45)}
+
+  /* أزرار عامة */
+  .btn{
+    position:relative;overflow:hidden;
+    border:1px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.06);
+    color:#eaf7ff;padding:11px 16px;border-radius:13px;
+    font-family:inherit;font-size:14.5px;cursor:pointer;
+    transition:transform .12s ease, background .2s, box-shadow .2s, border-color .2s;
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
+    user-select:none;
+  }
+  .btn:hover{background:rgba(255,255,255,.14);border-color:rgba(160,230,255,.4);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 4px 16px rgba(60,180,255,.2);}
+  .btn:active{transform:scale(.93);background:rgba(255,255,255,.2)}
+
+  .btn.primary{
+    background:linear-gradient(180deg, rgba(110,220,255,.3), rgba(30,140,200,.25));
+    border-color:rgba(160,235,255,.5);font-weight:700;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 4px 18px rgba(30,150,220,.25);
+  }
+  .btn.primary:hover{background:linear-gradient(180deg, rgba(110,220,255,.45), rgba(30,140,200,.35))}
+
+  .btn.accent{
+    background:linear-gradient(180deg, rgba(255,210,120,.28), rgba(200,140,40,.22));
+    border-color:rgba(255,220,150,.5);font-weight:700;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 4px 18px rgba(200,140,40,.22);
+  }
+  .btn.accent:hover{background:linear-gradient(180deg, rgba(255,210,120,.45), rgba(200,140,40,.32))}
+
+  .btn.danger{
+    background:linear-gradient(180deg, rgba(255,140,160,.22), rgba(200,50,90,.18));
+    border-color:rgba(255,170,190,.35);
+  }
+  .btn.danger:hover{background:linear-gradient(180deg, rgba(255,140,160,.35), rgba(200,50,90,.28))}
+
+  .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);
+    transform:scale(0);animation:rippleAnim .65s ease-out;pointer-events:none;}
+  @keyframes rippleAnim{to{transform:scale(1);opacity:0}}
+
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .actions .btn{flex:1 1 130px}
+
+  /* ===== الفاتورة ===== */
+  .invoice-paper{
+    background:linear-gradient(180deg,#f8fbff 0%,#e6f2fb 100%);
+    color:#0a2a44;border-radius:18px;padding:22px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.95),
+      0 10px 36px rgba(0,20,40,.42);
+    position:relative;
+  }
+  .invoice-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    gap:12px;padding-bottom:14px;margin-bottom:16px;
+    border-bottom:2px dashed rgba(30,110,160,.3);flex-wrap:wrap;
+  }
+  .invoice-title{font-size:22px;font-weight:800;color:#1e6ea0;line-height:1.2}
+  .invoice-title small{display:block;font-size:12.5px;font-weight:500;
+    color:rgba(10,42,68,.6);margin-top:4px}
+  .invoice-date{
+    font-size:13px;font-weight:700;color:#0a2a44;
+    padding:8px 14px;border-radius:10px;
+    background:rgba(30,110,160,.1);
+    border:1px solid rgba(30,110,160,.2);
+    font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .invoice-date span{display:block;font-size:11px;font-weight:500;color:rgba(10,42,68,.6)}
+
+  .inv-cat{margin-bottom:16px}
+  .inv-cat-title{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 0;margin-bottom:8px;
+    border-bottom:1px solid rgba(30,110,160,.2);
+    font-weight:800;font-size:15px;color:#1e6ea0;
+  }
+  .inv-cat-title .cnt{
+    font-size:12px;font-weight:600;color:rgba(10,42,68,.6);
+    background:rgba(30,110,160,.1);
+    padding:3px 10px;border-radius:999px;
+  }
+  .inv-item{
+    display:grid;grid-template-columns:28px 1fr 90px 90px;
+    gap:8px;padding:7px 6px;font-size:13.5px;align-items:center;
+    border-bottom:1px dashed rgba(30,110,160,.12);
+    font-variant-numeric:tabular-nums;
+  }
+  .inv-item:last-child{border-bottom:none}
+  .inv-item .num{color:#1e6ea0;font-weight:700;text-align:center}
+  .inv-item .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .inv-item .qty{text-align:center;font-weight:600;color:#0a2a44}
+  .inv-item .qty small{display:block;font-size:10px;font-weight:400;color:rgba(10,42,68,.55)}
+  .inv-sub{
+    display:flex;justify-content:flex-end;gap:14px;
+    padding:8px 6px;margin-top:6px;
+    font-size:13px;font-weight:700;color:#1e6ea0;
+    background:rgba(30,110,160,.06);
+    border-radius:8px;font-variant-numeric:tabular-nums;
+  }
+
+  .inv-total{
+    margin-top:18px;padding-top:16px;
+    border-top:2.5px solid #1e6ea0;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  }
+  .inv-total .box{
+    text-align:center;padding:12px 8px;
+    background:rgba(30,110,160,.1);
+    border:1px solid rgba(30,110,160,.2);
+    border-radius:12px;
+  }
+  .inv-total .box b{
+    display:block;font-size:22px;font-weight:800;color:#1e6ea0;
+    font-variant-numeric:tabular-nums;margin-bottom:2px;
+  }
+  .inv-total .box span{font-size:12px;color:rgba(10,42,68,.65);font-weight:600}
+
+  /* المحفوظات */
+  .saved-list{display:flex;flex-direction:column;gap:14px}
+  .saved-card{
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:16px;padding:14px;
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    transition:.2s;
+  }
+  .saved-card:hover{background:rgba(255,255,255,.08);border-color:rgba(160,230,255,.3)}
+  .saved-head{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    margin-bottom:10px;padding-bottom:10px;
+    border-bottom:1px solid rgba(255,255,255,.1);flex-wrap:wrap;
+  }
+  .saved-cat{font-weight:700;font-size:14.5px;color:#a9edff;
+    display:flex;align-items:center;gap:6px}
+  .saved-date{
+    font-size:12px;color:rgba(200,240,255,.75);
+    font-variant-numeric:tabular-nums;
+    padding:3px 10px;border-radius:8px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.1);
+  }
+  .saved-actions{display:flex;gap:6px;margin-right:auto}
+  .saved-items{display:flex;flex-direction:column;gap:6px}
+  .saved-item{
+    font-size:13.5px;padding:9px 12px;
+    background:rgba(255,255,255,.03);
+    border-radius:10px;border:1px solid rgba(255,255,255,.08);
+    color:#e0f4ff;font-variant-numeric:tabular-nums;
+    display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;
+  }
+  .saved-item .n{color:#a9edff;font-weight:700;text-align:center}
+  .saved-item .q{font-size:12px;color:rgba(200,240,255,.7)}
+
+  .empty-state{
+    text-align:center;padding:50px 20px;
+    color:rgba(200,240,255,.55);font-size:14px;line-height:2;
+  }
+  .empty-state .icon{font-size:52px;margin-bottom:14px;opacity:.7;display:block}
+
+  /* توست */
+  .toast{
+    position:fixed;left:50%;bottom:26px;z-index:50;
+    transform:translate(-50%,26px);
+    background:rgba(8,48,72,.88);
+    border:1px solid rgba(140,230,255,.5);
+    color:#eaf7ff;padding:12px 22px;border-radius:999px;
+    font-size:14px;white-space:nowrap;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    box-shadow:0 10px 32px rgba(0,20,35,.5);
+    opacity:0;pointer-events:none;transition:.3s;
+    max-width:90vw;overflow:hidden;text-overflow:ellipsis;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* جوال */
+  @media (max-width:720px){
+    .paper{
+      grid-template-columns:1fr 1fr;
+      grid-template-areas:
+        "idx  idx"
+        "name name"
+        "cart pcs"
+        "acts acts";
+      gap:9px;padding:12px;
+    }
+    .paper > .idx{grid-area:idx;width:34px;height:34px;font-size:13px}
+    .paper > .f-name{grid-area:name}
+    .paper > .f-cart{grid-area:cart}
+    .paper > .f-pcs{grid-area:pcs}
+    .paper > .row-actions{grid-area:acts;justify-content:flex-start}
+    .paper .field label{display:block}
+    .p-btn{width:auto;height:36px;padding:0 14px;font-size:13px}
+    .actions .btn{flex:1 1 100%}
+    .inv-item{grid-template-columns:24px 1fr 72px 72px;font-size:12.5px}
+    .inv-total .box b{font-size:18px}
+    .invoice-paper{padding:16px}
+    .invoice-title{font-size:18px}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+  <div id="bubbles"></div>
+</div>
+
+<div class="app">
+  <header class="head">
+    <h1>💧 سجل النواقص</h1>
+    <div class="clock" id="clock">—</div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-cat="food">🍚 الغذائية</button>
+    <button class="tab" data-cat="cleaning">🧴 المنظفات</button>
+    <button class="tab" data-cat="sweets">🍬 الحلويات</button>
+    <button class="tab" data-cat="misc">📦 العشوائيات</button>
+    <button class="tab" data-cat="invoice">🧾 الفاتورة</button>
+    <button class="tab" data-cat="saved">🗄 المحفوظات</button>
+  </nav>
+
+  <main id="content"></main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  const CATS = {
+    food:     { label: "الغذائية",   icon: "🍚" },
+    cleaning: { label: "المنظفات",   icon: "🧴" },
+    sweets:   { label: "الحلويات",   icon: "🍬" },
+    misc:     { label: "العشوائيات", icon: "📦" }
+  };
+  const CAT_KEYS = Object.keys(CATS);
+  const STORAGE = "naqes_v4";
+  let activeTab = "food";
+
+  let state = {
+    working: { food: [], cleaning: [], sweets: [], misc: [] },
+    saved: []
+  };
+
+  const $  = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const pad = n => String(n).padStart(2, "0");
+
+  /* ===== الأرقام ===== */
+  const fmtNum = v => {
+    const d = String(v == null ? "" : v).replace(/\D/g, "");
+    return d ? d.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "";
+  };
+  const rawNum = v => String(v == null ? "" : v).replace(/\D/g, "");
+  const toInt  = v => { const d = rawNum(v); return d ? parseInt(d, 10) : 0; };
+
+  /* ===== التواريخ ===== */
+  function fmtDateTime(ts) {
+    const d = new Date(ts);
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} — ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function fmtClock() {
+    const d = new Date();
+    const days = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+    return `${days[d.getDay()]} ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} — ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  /* ===== توست ===== */
+  let toastTimer;
+  function toast(msg) {
+    const el = $("#toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 2000);
+  }
+
+  /* ===== نسخ ===== */
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) {}
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.top = "-2000px";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+
+  /* ===== حالة ===== */
+  function saveState() {
+    try { localStorage.setItem(STORAGE, JSON.stringify(state)); } catch (e) {}
+  }
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE);
+      if (!raw) return;
+      const p = JSON.parse(raw);
+      if (p && p.working) {
+        state = p;
+        if (!Array.isArray(state.saved)) state.saved = [];
+        CAT_KEYS.forEach(k => { if (!Array.isArray(state.working[k])) state.working[k] = []; });
+      }
+    } catch (e) {}
+  }
+
+  function newItem() {
+    return { id: uid(), name: "", cartons: "", pieces: "", createdAt: Date.now() };
+  }
+  function isFilled(it) {
+    return !!( (it.name && String(it.name).trim()) ||
+               (it.cartons && String(it.cartons).trim()) ||
+               (it.pieces  && String(it.pieces).trim()) );
+  }
+  function isRowEmpty(row) {
+    return !row.querySelector(".name").value.trim() &&
+           !rawNum(row.querySelector(".cartons").value) &&
+           !rawNum(row.querySelector(".pieces").value);
+  }
+  function filledItems(cat) { return state.working[cat].filter(isFilled); }
+
+  /* ===== ريبيل ===== */
+  function attachRipple(el) {
+    if (el._ripple) return;
+    el._ripple = true;
+    el.addEventListener("click", function (e) {
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 2;
+      const r = document.createElement("span");
+      r.className = "ripple";
+      r.style.width = r.style.height = size + "px";
+      r.style.left = (e.clientX - rect.left - size / 2) + "px";
+      r.style.top  = (e.clientY - rect.top  - size / 2) + "px";
+      this.appendChild(r);
+      setTimeout(() => r.remove(), 700);
+    });
+  }
+
+  function mkBtn(text, cls, title) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn" + (cls ? " " + cls : "");
+    if (title) b.title = title;
+    b.textContent = text;
+    attachRipple(b);
+    return b;
+  }
+
+  /* ===== إدخال رقمي منسّق ===== */
+  function bindFormattedInput(input, item, field) {
+    input.value = fmtNum(item[field]);
+    input.addEventListener("input", () => {
+      const pos = input.selectionStart;
+      const val = input.value;
+      const digitsBefore = rawNum(val.substring(0, pos)).length;
+      const raw = rawNum(val);
+      item[field] = raw;
+      const formatted = fmtNum(raw);
+      if (input.value !== formatted) {
+        input.value = formatted;
+        // استعادة موضع المؤشر بعد التنسيق
+        let np = 0, cnt = 0;
+        for (let i = 0; i < formatted.length && cnt < digitsBefore; i++) {
+          if (/\d/.test(formatted[i])) cnt++;
+          np = i + 1;
+        }
+        try { input.setSelectionRange(np, np); } catch (e) {}
+      }
+      saveState();
+      const panel = input.closest(".panel");
+      if (panel && panel._cat) updateBadge(panel, panel._cat);
+    });
+  }
+
+  function updateBadge(panel, cat) {
+    const b = panel.querySelector(".badge");
+    if (!b) return;
+    b.textContent = fmtNum(filledItems(cat).length) + " منتج";
+  }
+
+  /* ===== بناء ورقة منتج ===== */
+  function buildPaper(cat, item, container) {
+    const paper = document.createElement("div");
+    paper.className = "paper";
+    paper.dataset.id = item.id;
+
+    paper.innerHTML = `
+      <div class="idx"></div>
+      <div class="field f-name">
+        <label>اسم المنتج</label>
+        <input class="name" type="text" placeholder="اسم المنتج" autocomplete="off">
+      </div>
+      <div class="field f-cart">
+        <label>عدد الكراتين</label>
+        <input class="cartons" type="text" inputmode="numeric" placeholder="0" autocomplete="off">
+      </div>
+      <div class="field f-pcs">
+        <label>عدد القطع</label>
+        <input class="pieces" type="text" inputmode="numeric" placeholder="0" autocomplete="off">
+      </div>
+      <div class="row-actions">
+        <button type="button" class="p-btn copy" title="نسخ" aria-label="نسخ">📋</button>
+        <button type="button" class="p-btn del" title="حذف" aria-label="حذف">✕</button>
+      </div>
+    `;
+
+    const nameIn = paper.querySelector(".name");
+    const cartIn = paper.querySelector(".cartons");
+    const pcsIn  = paper.querySelector(".pieces");
+
+    nameIn.value = item.name || "";
+    bindFormattedInput(cartIn, item, "cartons");
+    bindFormattedInput(pcsIn,  item, "pieces");
+
+    nameIn.addEventListener("input", () => {
+      item.name = nameIn.value;
+      saveState();
+      const panel = paper.closest(".panel");
+      if (panel && panel._cat) updateBadge(panel, panel._cat);
+      maybeAddTrailing(cat, container, item, paper);
+    });
+
+    [cartIn, pcsIn].forEach(inp => {
+      inp.addEventListener("input", () => {
+        const panel = paper.closest(".panel");
+        if (panel && panel._cat) updateBadge(panel, panel._cat);
+        maybeAddTrailing(cat, container, item, paper);
+      });
+    });
+
+    /* نسخ الورقة */
+    paper.querySelector(".copy").addEventListener("click", async () => {
+      if (!isFilled(item)) { toast("الورقة فارغة"); return; }
+      const idx = [...container.children].indexOf(paper) + 1;
+      const txt =
+        `${idx}) ${item.name || "—"} | كراتين: ${fmtNum(item.cartons) || 0} | قطع: ${fmtNum(item.pieces) || 0}`;
+      const ok = await copyText(txt);
+      toast(ok ? "✅ تم النسخ" : "⚠️ تعذّر النسخ");
+    });
+
+    /* حذف الورقة */
+    paper.querySelector(".del").addEventListener("click", () => {
+      paper.remove();
+      state.working[cat] = state.working[cat].filter(x => x.id !== item.id);
+      ensureTrailing(cat, container);
+      saveState();
+      renumber(container);
+      const panel = paper.closest(".panel");
+      if (panel && panel._cat) updateBadge(panel, panel._cat);
+      toast("🗑 تم الحذف");
+    });
+
+    return paper;
+  }
+
+  function maybeAddTrailing(cat, container, item, paper) {
+    if (paper !== container.lastElementChild) return;
+    if (!isFilled(item)) return;
+    const ni = newItem();
+    state.working[cat].push(ni);
+    saveState();
+    const newPaper = buildPaper(cat, ni, container);
+    container.appendChild(newPaper);
+    renumber(container);
+  }
+
+  function ensureTrailing(cat, container) {
+    const arr = state.working[cat];
+    // احذف الفراغات المتتالية في النهاية (يبقى واحد)
+    while (arr.length > 1 && !isFilled(arr[arr.length-1]) && !isFilled(arr[arr.length-2])) {
+      arr.pop();
+    }
+    if (!arr.length) {
+      const ni = newItem();
+      arr.push(ni);
+      container.appendChild(buildPaper(cat, ni, container));
+    } else if (isFilled(arr[arr.length-1])) {
+      const ni = newItem();
+      arr.push(ni);
+      container.appendChild(buildPaper(cat, ni, container));
+    }
+    saveState();
+    renumber(container);
+  }
+
+  function renumber(container) {
+    [...container.children].forEach((r, i) => {
+      const idx = r.querySelector(".idx");
+      if (idx) idx.textContent = fmtNum(i + 1);
+    });
+  }
+
+  /* ===== عرض قسم ===== */
+  function renderCategory(cat) {
+    // احذف الفراغات المتتالية في النهاية
+    const arr = state.working[cat];
+    while (arr.length > 1 && !isFilled(arr[arr.length-1]) && !isFilled(arr[arr.length-2])) {
+      arr.pop();
+    }
+    if (!arr.length) arr.push(newItem());
+    else if (isFilled(arr[arr.length-1])) arr.push(newItem());
+    saveState();
+
+    const panel = document.createElement("div");
+    panel.className = "panel";
+    panel._cat = cat;
+
+    const head = document.createElement("div");
+    head.className = "panel-head";
+    head.innerHTML = `
+      <h2>${CATS[cat].icon} ${CATS[cat].label}</h2>
+      <span class="badge">0 منتج</span>
+    `;
+    panel.appendChild(head);
+
+    const papersEl = document.createElement("div");
+    papersEl.className = "papers";
+    panel.appendChild(papersEl);
+
+    state.working[cat].forEach(it => papersEl.appendChild(buildPaper(cat, it, papersEl)));
+    renumber(papersEl);
+    updateBadge(panel, cat);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const addBtn = mkBtn("＋ إضافة منتج", "primary");
+    addBtn.onclick = () => {
+      const last = papersEl.lastElementChild;
+      if (last && isRowEmpty(last)) { last.querySelector(".name").focus(); return; }
+      const ni = newItem();
+      state.working[cat].push(ni);
+      saveState();
+      const p = buildPaper(cat, ni, papersEl);
+      papersEl.appendChild(p);
+      renumber(papersEl);
+      p.querySelector(".name").focus();
+    };
+
+    const copyBtn = mkBtn("📋 نسخ الكل");
+    copyBtn.onclick = async () => {
+      const filled = filledItems(cat);
+      if (!filled.length) { toast("لا توجد بيانات"); return; }
+      const txt = filled.map((it, i) =>
+        `${i+1}) ${it.name || "—"} | كراتين: ${fmtNum(it.cartons) || 0} | قطع: ${fmtNum(it.pieces) || 0}`
+      ).join("\n");
+      const ok = await copyText(txt);
+      toast(ok ? `✅ تم نسخ ${fmtNum(filled.length)} منتج` : "⚠️ تعذّر النسخ");
+    };
+
+    const saveBtn = mkBtn("📥 حفظ في المحفوظات", "accent");
+    saveBtn.onclick = () => {
+      const filled = filledItems(cat);
+      if (!filled.length) { toast("لا توجد بيانات للحفظ"); return; }
+      state.saved.unshift({
+        id: uid(),
+        type: "category",
+        cat: cat,
+        items: filled.map(it => ({ name: it.name, cartons: it.cartons, pieces: it.pieces })),
+        ts: Date.now()
+      });
+      state.working[cat] = [newItem()];
+      saveState();
+      render();
+      toast("✅ تم الحفظ في المحفوظات");
+    };
+
+    const clearBtn = mkBtn("🗑 مسح القسم", "danger");
+    clearBtn.onclick = () => {
+      if (!filledItems(cat).length) { toast("لا شيء لمسحه"); return; }
+      if (!confirm("مسح كل منتجات هذا القسم؟")) return;
+      state.working[cat] = [newItem()];
+      saveState();
+      render();
+      toast("تم المسح");
+    };
+
+    actions.appendChild(addBtn);
+    actions.appendChild(copyBtn);
+    actions.appendChild(saveBtn);
+    actions.appendChild(clearBtn);
+    panel.appendChild(actions);
+
+    return panel;
+  }
+
+  /* ===== بناء بيانات الفاتورة ===== */
+  function collectInvoice() {
+    const result = { cats: {}, totalItems: 0, totalCartons: 0, totalPieces: 0 };
+    CAT_KEYS.forEach(cat => {
+      const items = filledItems(cat);
+      let c = 0, p = 0;
+      items.forEach(it => {
+        c += toInt(it.cartons);
+        p += toInt(it.pieces);
+      });
+      result.cats[cat] = {
+        items: items.map(it => ({
+          name: it.name, cartons: it.cartons, pieces: it.pieces
+        })),
+        cartons: c, pieces: p, count: items.length
+      };
+      result.totalItems   += items.length;
+      result.totalCartons += c;
+      result.totalPieces  += p;
+    });
+    return result;
+  }
+
+  /* ===== عرض الفاتورة ===== */
+  function renderInvoice() {
+    const wrap = document.createElement("div");
+    wrap.className = "panel";
+
+    const now = Date.now();
+    const inv = collectInvoice();
+
+    const head = document.createElement("div");
+    head.className = "panel-head";
+    head.innerHTML = `<h2>🧾 الفاتورة الموحدة</h2>
+      <span class="badge">${fmtNum(inv.totalItems)} منتج</span>`;
+    wrap.appendChild(head);
+
+    if (inv.totalItems === 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.innerHTML = `<span class="icon">🧾</span>لا توجد منتجات في أي قسم بعد<br>أضف منتجات في الأقسام لتظهر هنا تلقائياً`;
+      wrap.appendChild(empty);
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const gotoBtn = mkBtn("← العودة للأقسام", "primary");
+      gotoBtn.onclick = () => { activeTab = "food"; render(); };
+      actions.appendChild(gotoBtn);
+      wrap.appendChild(actions);
+      return wrap;
+    }
+
+    /* ورقة الفاتورة */
+    const paper = document.createElement("div");
+    paper.className = "invoice-paper";
+
+    const iHead = document.createElement("div");
+    iHead.className = "invoice-head";
+    iHead.innerHTML = `
+      <div class="invoice-title">
+        🧾 فاتورة النواقص
+        <small>جميع الأقسام في فاتورة واحدة</small>
+      </div>
+      <div class="invoice-date">
+        <span>📅 التاريخ والوقت</span>
+        ${fmtDateTime(now)}
+      </div>
+    `;
+    paper.appendChild(iHead);
+
+    CAT_KEYS.forEach(cat => {
+      const c = inv.cats[cat];
+      if (!c.count) return;
+
+      const catDiv = document.createElement("div");
+      catDiv.className = "inv-cat";
+
+      const title = document.createElement("div");
+      title.className = "inv-cat-title";
+      title.innerHTML = `
+        <span>${CATS[cat].icon} ${CATS[cat].label}</span>
+        <span class="cnt">${fmtNum(c.count)} منتج</span>
+      `;
+      catDiv.appendChild(title);
+
+      c.items.forEach((it, i) => {
+        const row = document.createElement("div");
+        row.className = "inv-item";
+        row.innerHTML = `
+          <span class="num">${fmtNum(i+1)}</span>
+          <span class="nm">${escapeHtml(it.name || "—")}</span>
+          <span class="qty">${fmtNum(it.cartons) || 0}<small>كرتون</small></span>
+          <span class="qty">${fmtNum(it.pieces) || 0}<small>قطعة</small></span>
+        `;
+        catDiv.appendChild(row);
+      });
+
+      const sub = document.createElement("div");
+      sub.className = "inv-sub";
+      sub.innerHTML = `
+        <span>المجموع:</span>
+        <span>${fmtNum(c.cartons)} كرتون</span>
+        <span>${fmtNum(c.pieces)} قطعة</span>
+      `;
+      catDiv.appendChild(sub);
+
+      paper.appendChild(catDiv);
+    });
+
+    const total = document.createElement("div");
+    total.className = "inv-total";
+    total.innerHTML = `
+      <div class="box"><b>${fmtNum(inv.totalItems)}</b><span>إجمالي المنتجات</span></div>
+      <div class="box"><b>${fmtNum(inv.totalCartons)}</b><span>إجمالي الكراتين</span></div>
+      <div class="box"><b>${fmtNum(inv.totalPieces)}</b><span>إجمالي القطع</span></div>
+    `;
+    paper.appendChild(total);
+
+    wrap.appendChild(paper);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const copyInvBtn = mkBtn("📋 نسخ الفاتورة", "primary");
+    copyInvBtn.onclick = async () => {
+      const lines = [];
+      lines.push("🧾 فاتورة النواقص");
+      lines.push("📅 " + fmtDateTime(now));
+      lines.push("─────────────────────");
+      CAT_KEYS.forEach(cat => {
+        const c = inv.cats[cat];
+        if (!c.count) return;
+        lines.push("");
+        lines.push(`${CATS[cat].icon} ${CATS[cat].label}`);
+        c.items.forEach((it, i) => {
+          lines.push(`${i+1}) ${it.name || "—"} | كراتين: ${fmtNum(it.cartons) || 0} | قطع: ${fmtNum(it.pieces) || 0}`);
+        });
+        lines.push(`المجموع: ${fmtNum(c.cartons)} كرتون، ${fmtNum(c.pieces)} قطعة`);
+      });
+      lines.push("");
+      lines.push("─────────────────────");
+      lines.push(`📊 الإجمالي: ${fmtNum(inv.totalItems)} منتج | ${fmtNum(inv.totalCartons)} كرتون | ${fmtNum(inv.totalPieces)} قطعة`);
+      const ok = await copyText(lines.join("\n"));
+      toast(ok ? "✅ تم نسخ الفاتورة" : "⚠️ تعذّر النسخ");
+    };
+
+    const saveInvBtn = mkBtn("💾 حفظ الفاتورة", "accent");
+    saveInvBtn.onclick = () => {
+      state.saved.unshift({
+        id: uid(),
+        type: "invoice",
+        data: inv,
+        ts: Date.now()
+      });
+      saveState();
+      render();
+      toast("✅ تم حفظ الفاتورة في المحفوظات");
+    };
+
+    const clearAllBtn = mkBtn("🗑 مسح كل الأقسام", "danger");
+    clearAllBtn.onclick = () => {
+      if (!confirm("مسح جميع المنتجات من جميع الأقسام؟")) return;
+      CAT_KEYS.forEach(k => { state.working[k] = [newItem()]; });
+      saveState();
+      render();
+      toast("تم مسح كل الأقسام");
+    };
+
+    actions.appendChild(copyInvBtn);
+    actions.appendChild(saveInvBtn);
+    actions.appendChild(clearAllBtn);
+    wrap.appendChild(actions);
+
+    return wrap;
+  }
+
+  /* ===== المحفوظات ===== */
+  function renderSaved() {
+    const wrap = document.createElement("div");
+    wrap.className = "panel";
+
+    const head = document.createElement("div");
+    head.className = "panel-head";
+    head.innerHTML = `<h2>🗄 المحفوظات</h2>
+      <span class="badge">${fmtNum(state.saved.length)} قائمة</span>`;
+    wrap.appendChild(head);
+
+    if (!state.saved.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.innerHTML = `<span class="icon">🗄</span>لا توجد قوائم محفوظة بعد<br>احفظ قسماً أو الفاتورة لتظهر هنا`;
+      wrap.appendChild(empty);
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const backBtn = mkBtn("← العودة للأقسام", "primary");
+      backBtn.onclick = () => { activeTab = "food"; render(); };
+      actions.appendChild(backBtn);
+      wrap.appendChild(actions);
+      return wrap;
+    }
+
+    const list = document.createElement("div");
+    list.className = "saved-list";
+
+    state.saved.forEach(entry => {
+      const card = document.createElement("div");
+      card.className = "saved-card";
+
+      const h = document.createElement("div");
+      h.className = "saved-head";
+
+      let titleHtml = "";
+      let copyText_ = "";
+
+      if (entry.type === "invoice" && entry.data) {
+        titleHtml = `<span class="saved-cat">🧾 فاتورة موحدة</span>`;
+        const lines = ["🧾 فاتورة النواقص", "📅 " + fmtDateTime(entry.ts), "─────────────────"];
+        CAT_KEYS.forEach(cat => {
+          const c = entry.data.cats[cat];
+          if (!c || !c.count) return;
+          lines.push("");
+          lines.push(`${CATS[cat].icon} ${CATS[cat].label}`);
+          c.items.forEach((it, i) => {
+            lines.push(`${i+1}) ${it.name || "—"} | كراتين: ${fmtNum(it.cartons) || 0} | قطع: ${fmtNum(it.pieces) || 0}`);
+          });
+          lines.push(`المجموع: ${fmtNum(c.cartons)} كرتون، ${fmtNum(c.pieces)} قطعة`);
+        });
+        lines.push("");
+        lines.push(`📊 الإجمالي: ${fmtNum(entry.data.totalItems)} منتج | ${fmtNum(entry.data.totalCartons)} كرتون | ${fmtNum(entry.data.totalPieces)} قطعة`);
+        copyText_ = lines.join("\n");
+      } else {
+        const cat = entry.cat;
+        const info = CATS[cat] || { icon: "📁", label: cat || "قسم" };
+        titleHtml = `<span class="saved-cat">${info.icon} ${info.label}</span>`;
+        const items = entry.items || [];
+        copyText_ = items.map((it, i) =>
+          `${i+1}) ${it.name || "—"} | كراتين: ${fmtNum(it.cartons) || 0} | قطع: ${fmtNum(it.pieces) || 0}`
+        ).join("\n");
+      }
+
+      h.innerHTML = `
+        ${titleHtml}
+        <span class="saved-date">🕒 ${fmtDateTime(entry.ts)}</span>
+        <div class="saved-actions"></div>
+      `;
+
+      const copyBtn = mkBtn("📋", "", "نسخ");
+      copyBtn.classList.add("icon");
+      copyBtn.style.padding = "8px 12px";
+      copyBtn.onclick = async () => {
+        const ok = await copyText(copyText_);
+        toast(ok ? "✅ تم النسخ" : "⚠️ تعذّر النسخ");
+      };
+      h.querySelector(".saved-actions").appendChild(copyBtn);
+
+      const delBtn = mkBtn("✕", "danger", "حذف");
+      delBtn.classList.add("icon");
+      delBtn.style.padding = "8px 12px";
+      delBtn.onclick = () => {
+        if (!confirm("حذف هذه القائمة؟")) return;
+        state.saved = state.saved.filter(x => x.id !== entry.id);
+        saveState();
+        render();
+        toast("تم الحذف");
+      };
+      h.querySelector(".saved-actions").appendChild(delBtn);
+
+      card.appendChild(h);
+
+      const itemsEl = document.createElement("div");
+      itemsEl.className = "saved-items";
+
+      if (entry.type === "invoice" && entry.data) {
+        CAT_KEYS.forEach(cat => {
+          const c = entry.data.cats[cat];
+          if (!c || !c.count) return;
+          const catHeader = document.createElement("div");
+          catHeader.style.cssText = "font-weight:700;color:#a9edff;font-size:13px;margin-top:8px;padding:4px 0";
+          catHeader.textContent = `${CATS[cat].icon} ${CATS[cat].label} (${fmtNum(c.count)})`;
+          itemsEl.appendChild(catHeader);
+          c.items.forEach((it, i) => {
+            const r = document.createElement("div");
+            r.className = "saved-item";
+            r.innerHTML = `
+              <span class="n">${fmtNum(i+1)}</span>
+              <span>${escapeHtml(it.name || "—")}</span>
+              <span class="q">${fmtNum(it.cartons) || 0} كرتون • ${fmtNum(it.pieces) || 0} قطعة</span>
+            `;
+            itemsEl.appendChild(r);
+          });
+        });
+      } else {
+        (entry.items || []).forEach((it, i) => {
+          const r = document.createElement("div");
+          r.className = "saved-item";
+          r.innerHTML = `
+            <span class="n">${fmtNum(i+1)}</span>
+            <span>${escapeHtml(it.name || "—")}</span>
+            <span class="q">${fmtNum(it.cartons) || 0} كرتون • ${fmtNum(it.pieces) || 0} قطعة</span>
+          `;
+          itemsEl.appendChild(r);
+        });
+      }
+
+      card.appendChild(itemsEl);
+      list.appendChild(card);
+    });
+
+    wrap.appendChild(list);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    const clearAll = mkBtn("🗑 مسح كل المحفوظات", "danger");
+    clearAll.onclick = () => {
+      if (!confirm("حذف جميع القوائم المحفوظة؟")) return;
+      state.saved = [];
+      saveState();
+      render();
+      toast("تم مسح المحفوظات");
+    };
+    actions.appendChild(clearAll);
+    wrap.appendChild(actions);
+
+    return wrap;
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  /* ===== التبويبات ===== */
+  function renderTabs() {
+    $$(".tab").forEach(t => {
+      const cat = t.dataset.cat;
+      t.classList.toggle("active", cat === activeTab);
+      if (cat !== "saved" && cat !== "invoice") {
+        const hasData = state.working[cat] && state.working[cat].some(isFilled);
+        t.classList.toggle("has-data", hasData);
+      } else if (cat === "invoice") {
+        const hasData = CAT_KEYS.some(k => state.working[k].some(isFilled));
+        t.classList.toggle("has-data", hasData);
+      } else {
+        t.classList.toggle("has-data", state.saved.length > 0);
+      }
+      attachRipple(t);
+    });
+  }
+
+  /* ===== عرض رئيسي ===== */
+  function render() {
+    renderTabs();
+    const content = $("#content");
+    content.innerHTML = "";
+    let node;
+    if (activeTab === "saved")       node = renderSaved();
+    else if (activeTab === "invoice") node = renderInvoice();
+    else                              node = renderCategory(activeTab);
+    content.appendChild(node);
+  }
+
+  /* ===== الساعة ===== */
+  function tickClock() {
+    const el = $("#clock");
+    if (el) el.textContent = fmtClock();
+  }
+
+  /* ===== فقاعات ===== */
+  function makeBubbles() {
+    const box = $("#bubbles");
+    if (!box) return;
+    for (let i = 0; i < 14; i++) {
+      const b = document.createElement("div");
+      b.className = "bubble";
+      const size = 20 + Math.random() * 85;
+      b.style.width = b.style.height = size + "px";
+      b.style.left = (Math.random() * 100) + "%";
+      b.style.animationDuration = (16 + Math.random() * 20) + "s";
+      b.style.animationDelay = (-Math.random() * 30) + "s";
+      b.style.opacity = 0.25 + Math.random() * 0.45;
+      box.appendChild(b);
+    }
+  }
+
+  /* ===== إقلاع ===== */
+  function init() {
+    loadState();
+    makeBubbles();
+    tickClock();
+    setInterval(tickClock, 1000);
+
+    $$(".tab").forEach(t => {
+      t.addEventListener("click", () => {
+        activeTab = t.dataset.cat;
+        render();
+      });
+    });
+
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
